@@ -30,8 +30,7 @@ def app():
     #Credentials
     credentials = st.text_input("Credentials")
     #submit csv file
-    st.header("Submit your csv file")
-    csv_file = st.file_uploader("Upload CSV", type=["csv"])
+    csv_file = pd.read_csv('data/chats.csv')
 
     if st.button("Populate Database"):
         df = read_csv(csv_file)
