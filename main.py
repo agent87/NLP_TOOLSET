@@ -1,42 +1,43 @@
-import streamlit as st
-import pandas as pd
-import sqlalchemy as db
+import streamlit as st 
+import os
+from packages.chatbot.train import train
 
 
-def process_credentials(credentials):
-    return 'postgresql+psycopg2' + credentials[8:]
 
-def read_csv(csv_file):
-    #show csv file on streamlit
-    df = pd.read_csv(csv_file)
-    return df
+def train_ui():
+    st.title("Train Chatbot Model")
+    st.write("This is a tool to train a chatbot model.")
 
-def populate_database(credentials, df):
-    #create engine
-    engine = db.create_engine(process_credentials(credentials))
-    #create connection
-    connection = engine.connect()
-    #create table with name chats
-    df.to_sql('chats', con=connection, if_exists='replace', index=False)
+    intents = st.file_uploader("Upload your training data", type="json")
 
-    #close connection
-    connection.close()
-
-    
-def app():
-    st.title("Populate Database")
-
-    st.header("Provide your database credentials")
-    #Credentials
-    credentials = st.text_input("Credentials")
-    #submit csv file
-
-    if st.button("Populate Database"):
-        df = pd.read_csv('data/chats.csv')
-        populate_database(credentials, df)
-        st.success("Database populated successfully")
+    #save intents file to temp folder
+    if intents is not None:
+        #Train the model
+        trainor = train(intents)
+        train_button = st.button("Train Model")
+        if train_button:
+            trainor.train()
+            #Download Button
+            st.download_button("Download Model File", data=trainor.model_file, file_name="data.pth", mime="application/octet-stream")
 
 
+def sidebar():
+    st.sidebar.title("NLP Toolset")
+    st.sidebar.write("Please choose a tool to use:")
+    options = ['Populate Database', 'Train Chatbot Model']
+    choice = st.sidebar.selectbox("Tool", options)
+
+    #Logic for each tool
+    if choice == 'Populate Database':
+        pass
+    elif choice == 'Train Chatbot Model':
+        train_ui()
+
+def main():
+    st.title("NLP Toolset")
+    st.write("This is a toolset for NLP tasks like population your databse, training a chatbot model, etc.") 
+
+    sidebar()
 
 if __name__ == "__main__":
-    app()
+    main()
